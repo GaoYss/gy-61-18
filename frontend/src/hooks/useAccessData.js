@@ -74,8 +74,11 @@ export function useAccessData({ refreshInterval = DEFAULT_REFRESH_INTERVAL } = {
   }, [refreshInterval, fetchData]);
 
   const offlineDeviceCount = useMemo(() => {
+    if (state.stats && typeof state.stats.devices_offline === "number") {
+      return state.stats.devices_offline;
+    }
     return state.devices.filter((d) => d.status === "offline").length;
-  }, [state.devices]);
+  }, [state.stats, state.devices]);
 
   const refresh = useCallback(() => fetchData(true), [fetchData]);
 

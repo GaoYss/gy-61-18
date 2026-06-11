@@ -114,7 +114,7 @@ select {
 
 .metrics-grid {
   display: grid;
-  grid-template-columns: repeat(6, minmax(140px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
   gap: 14px;
 }
 
@@ -609,7 +609,6 @@ dd {
     min-width: 112px;
   }
 
-  .metrics-grid,
   .dashboard-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -634,7 +633,6 @@ dd {
     justify-content: space-between;
   }
 
-  .metrics-grid,
   .dashboard-grid,
   dl {
     grid-template-columns: 1fr;

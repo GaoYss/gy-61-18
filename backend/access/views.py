@@ -82,10 +82,13 @@ class DoorLogViewSet(viewsets.ModelViewSet):
 class StatsView(APIView):
     def get(self, request):
         today = timezone.localdate()
+        devices_online = AccessDevice.objects.filter(status=AccessDevice.Status.ONLINE).count()
+        devices_offline = AccessDevice.objects.filter(status=AccessDevice.Status.OFFLINE).count()
         return Response(
             {
                 "devices_total": AccessDevice.objects.count(),
-                "devices_online": AccessDevice.objects.filter(status=AccessDevice.Status.ONLINE).count(),
+                "devices_online": devices_online,
+                "devices_offline": devices_offline,
                 "visitors_pending": VisitorPass.objects.filter(pass_status=VisitorPass.PassStatus.PENDING).count(),
                 "open_alarms": AlarmEvent.objects.exclude(status=AlarmEvent.Status.RESOLVED).count(),
                 "today_success_logs": DoorOpenLog.objects.filter(
