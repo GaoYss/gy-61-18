@@ -1,8 +1,10 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { accessApi } from "../api/client";
 
-export function useAccessData() {
+const DEFAULT_REFRESH_INTERVAL = 30000;
+
+export function useAccessData({ refreshInterval = DEFAULT_REFRESH_INTERVAL } = {}) {
   const [state, setState] = useState({
     loading: true,
     error: "",
@@ -11,35 +13,52 @@ export function useAccessData() {
     visitors: [],
     alarms: [],
     logs: [],
+    lastUpdated: null,
   });
+
+  const fetchData = useCallback(async () => {
+    try {
+      const [stats, devices, visitors, alarms, logs] = await Promise.all([
+        accessApi.stats(),
+        accessApi.devices(),
+        accessApi.visitors(),
+        accessApi.alarms(),
+        accessApi.doorLogs(),
+      ]);
+      setState({ loading: false, error: "", stats, devices, visitors, alarms, logs, lastUpdated: new Date() });
+    } catch (error) {
+      setState((current) => ({ ...current, loading: false, error: error.message }));
+    }
+  }, []);
 
   useEffect(() => {
     let mounted = true;
+    let intervalId = null;
 
     async function load() {
-      try {
-        const [stats, devices, visitors, alarms, logs] = await Promise.all([
-          accessApi.stats(),
-          accessApi.devices(),
-          accessApi.visitors(),
-          accessApi.alarms(),
-          accessApi.doorLogs(),
-        ]);
-        if (mounted) {
-          setState({ loading: false, error: "", stats, devices, visitors, alarms, logs });
-        }
-      } catch (error) {
-        if (mounted) {
-          setState((current) => ({ ...current, loading: false, error: error.message }));
-        }
+      await fetchData();
+      if (mounted && refreshInterval > 0) {
+        intervalId = setInterval(fetchData, refreshInterval);
       }
     }
 
     load();
     return () => {
       mounted = false;
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
     };
-  }, []);
+  }, [refreshInterval, fetchData]);
 
-  return useMemo(() => state, [state]);
+  const offlineDeviceCount = useMemo(() => {
+    return state.devices.filter((d) => d.status === "offline").length;
+  }, [state.devices]);
+
+  const value = useMemo(
+    () => ({ ...state, offlineDeviceCount, refresh: fetchData }),
+    [state, offlineDeviceCount, fetchData]
+  );
+
+  return value;
 }

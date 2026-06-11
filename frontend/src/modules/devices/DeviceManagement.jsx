@@ -1,4 +1,4 @@
-import { Activity, AlertTriangle, MapPin } from "lucide-react";
+import { Activity, AlertTriangle, MapPin, RefreshCw } from "lucide-react";
 
 import { EmptyState } from "../../components/EmptyState";
 import { StatusBadge } from "../../components/StatusBadge";
@@ -9,7 +9,9 @@ function getStatusPriority(status) {
 }
 
 export function DeviceManagement({ data }) {
-  const sortedDevices = [...data.devices].sort((a, b) => {
+  const { devices, offlineDeviceCount, lastUpdated, refresh } = data;
+
+  const sortedDevices = [...devices].sort((a, b) => {
     const priorityDiff = getStatusPriority(a.status) - getStatusPriority(b.status);
     if (priorityDiff !== 0) return priorityDiff;
     return a.device_code.localeCompare(b.device_code);
@@ -23,6 +25,24 @@ export function DeviceManagement({ data }) {
           <p>查看各出入口设备状态、安装位置和最近心跳时间。</p>
         </div>
       </header>
+
+      <div className="device-status-bar">
+        <div className={`offline-count-card ${offlineDeviceCount > 0 ? "has-offline" : ""}`}>
+          <AlertTriangle size={20} />
+          <div>
+            <span className="offline-label">离线设备</span>
+            <strong className="offline-number">{offlineDeviceCount}</strong>
+            <span className="offline-unit">台</span>
+          </div>
+        </div>
+        <div className="refresh-info">
+          {lastUpdated && <span className="last-updated">最后更新：{formatDateTime(lastUpdated)}</span>}
+          <button className="refresh-btn" onClick={refresh} title="手动刷新">
+            <RefreshCw size={16} />
+            刷新
+          </button>
+        </div>
+      </div>
 
       <div className="table-panel">
         <table>
@@ -51,7 +71,7 @@ export function DeviceManagement({ data }) {
             ))}
           </tbody>
         </table>
-        {!data.devices.length && <EmptyState />}
+        {!devices.length && <EmptyState />}
       </div>
     </section>
   );
