@@ -1,4 +1,4 @@
-from django.db.models import Count, Q
+from django.db.models import Case, Count, IntegerField, Q, When
 from django.utils import timezone
 from rest_framework import filters, viewsets
 from rest_framework.response import Response
@@ -9,11 +9,19 @@ from .serializers import AccessDeviceSerializer, AlarmEventSerializer, DoorOpenL
 
 
 class DeviceViewSet(viewsets.ModelViewSet):
-    queryset = AccessDevice.objects.all()
     serializer_class = AccessDeviceSerializer
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ["name", "device_code", "location"]
     ordering_fields = ["device_code", "last_heartbeat", "status"]
+
+    def get_queryset(self):
+        return AccessDevice.objects.annotate(
+            status_priority=Case(
+                When(status=AccessDevice.Status.OFFLINE, then=0),
+                default=1,
+                output_field=IntegerField(),
+            )
+        ).order_by("status_priority", "device_code")
 
 
 class VisitorPassViewSet(viewsets.ModelViewSet):

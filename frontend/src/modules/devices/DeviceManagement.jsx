@@ -1,10 +1,20 @@
-import { Activity, MapPin } from "lucide-react";
+import { Activity, AlertTriangle, MapPin } from "lucide-react";
 
 import { EmptyState } from "../../components/EmptyState";
 import { StatusBadge } from "../../components/StatusBadge";
 import { formatDateTime } from "../../utils/format";
 
+function getStatusPriority(status) {
+  return status === "offline" ? 0 : 1;
+}
+
 export function DeviceManagement({ data }) {
+  const sortedDevices = [...data.devices].sort((a, b) => {
+    const priorityDiff = getStatusPriority(a.status) - getStatusPriority(b.status);
+    if (priorityDiff !== 0) return priorityDiff;
+    return a.device_code.localeCompare(b.device_code);
+  });
+
   return (
     <section className="view-stack">
       <header className="page-header">
@@ -26,10 +36,14 @@ export function DeviceManagement({ data }) {
             </tr>
           </thead>
           <tbody>
-            {data.devices.map((device) => (
-              <tr key={device.id}>
+            {sortedDevices.map((device) => (
+              <tr key={device.id} className={device.status === "offline" ? "device-offline-row" : ""}>
                 <td>{device.device_code}</td>
-                <td><Activity size={15} />{device.name}</td>
+                <td>
+                  {device.status === "offline" && <AlertTriangle size={15} className="offline-icon" />}
+                  {device.status !== "offline" && <Activity size={15} />}
+                  {device.name}
+                </td>
                 <td><MapPin size={15} />{device.location}</td>
                 <td><StatusBadge value={device.status} label={device.status_display} /></td>
                 <td>{formatDateTime(device.last_heartbeat)}</td>

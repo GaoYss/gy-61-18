@@ -418,8 +418,7 @@ dd {
   background: #ffffff;
 }
 
-.empty-state,
-.error-panel {
+.empty-state {
   color: #6b7785;
   padding: 24px;
   text-align: center;
@@ -427,6 +426,20 @@ dd {
 
 .error-panel {
   color: #8e2525;
+  padding: 24px;
+  text-align: center;
+}
+
+.device-offline-row {
+  background: #fff7f5;
+}
+
+.device-offline-row:hover {
+  background: #ffece8 !important;
+}
+
+.offline-icon {
+  color: #d74d4d;
 }
 
 @media (max-width: 980px) {
