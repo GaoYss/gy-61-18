@@ -7,6 +7,7 @@ const DEFAULT_REFRESH_INTERVAL = 30000;
 export function useAccessData({ refreshInterval = DEFAULT_REFRESH_INTERVAL } = {}) {
   const [state, setState] = useState({
     loading: true,
+    refreshing: false,
     error: "",
     stats: null,
     devices: [],
@@ -16,7 +17,13 @@ export function useAccessData({ refreshInterval = DEFAULT_REFRESH_INTERVAL } = {
     lastUpdated: null,
   });
 
-  const fetchData = useCallback(async () => {
+  const fetchData = useCallback(async (isManualRefresh = false) => {
+    setState((current) => ({
+      ...current,
+      loading: !current.lastUpdated && !isManualRefresh,
+      refreshing: !!current.lastUpdated || isManualRefresh,
+      error: "",
+    }));
     try {
       const [stats, devices, visitors, alarms, logs] = await Promise.all([
         accessApi.stats(),
@@ -25,9 +32,24 @@ export function useAccessData({ refreshInterval = DEFAULT_REFRESH_INTERVAL } = {
         accessApi.alarms(),
         accessApi.doorLogs(),
       ]);
-      setState({ loading: false, error: "", stats, devices, visitors, alarms, logs, lastUpdated: new Date() });
+      setState({
+        loading: false,
+        refreshing: false,
+        error: "",
+        stats,
+        devices,
+        visitors,
+        alarms,
+        logs,
+        lastUpdated: new Date(),
+      });
     } catch (error) {
-      setState((current) => ({ ...current, loading: false, error: error.message }));
+      setState((current) => ({
+        ...current,
+        loading: false,
+        refreshing: false,
+        error: error.message,
+      }));
     }
   }, []);
 
@@ -38,7 +60,7 @@ export function useAccessData({ refreshInterval = DEFAULT_REFRESH_INTERVAL } = {
     async function load() {
       await fetchData();
       if (mounted && refreshInterval > 0) {
-        intervalId = setInterval(fetchData, refreshInterval);
+        intervalId = setInterval(() => fetchData(false), refreshInterval);
       }
     }
 
@@ -55,9 +77,11 @@ export function useAccessData({ refreshInterval = DEFAULT_REFRESH_INTERVAL } = {
     return state.devices.filter((d) => d.status === "offline").length;
   }, [state.devices]);
 
+  const refresh = useCallback(() => fetchData(true), [fetchData]);
+
   const value = useMemo(
-    () => ({ ...state, offlineDeviceCount, refresh: fetchData }),
-    [state, offlineDeviceCount, fetchData]
+    () => ({ ...state, offlineDeviceCount, refresh }),
+    [state, offlineDeviceCount, refresh]
   );
 
   return value;

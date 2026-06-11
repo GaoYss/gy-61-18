@@ -1,4 +1,4 @@
-import { AlertTriangle, CheckCircle2, Clock3, Router, UsersRound } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Clock3, Loader2, RefreshCw, Router, UsersRound } from "lucide-react";
 
 import { EmptyState } from "../../components/EmptyState";
 import { MetricCard } from "../../components/MetricCard";
@@ -19,11 +19,39 @@ export function Dashboard({ data }) {
           <h1>小区智能门禁运行总览</h1>
           <p>集中查看设备在线、访客预约、异常告警和今日开门结果。</p>
         </div>
+        <div className="dashboard-refresh">
+          {data.lastUpdated && (
+            <span className="last-updated">
+              {data.refreshing && <Loader2 size={14} className="icon-spin" />}
+              {data.lastUpdated && !data.refreshing && formatDateTime(data.lastUpdated)}
+              {data.refreshing && " 正在刷新..."}
+            </span>
+          )}
+          <button
+            className="refresh-btn"
+            onClick={data.refresh}
+            disabled={data.refreshing}
+            title="手动刷新"
+          >
+            <RefreshCw size={16} className={data.refreshing ? "icon-spin" : ""} />
+            刷新
+          </button>
+        </div>
       </header>
 
       <div className="metrics-grid">
         <MetricCard label="门禁设备" value={data.stats.devices_total} tone="blue" />
         <MetricCard label="在线设备" value={data.stats.devices_online} tone="green" />
+        {data.offlineDeviceCount > 0 ? (
+          <div className="metric-card tone-red offline-device-card" title="离线设备需尽快处理">
+            <span className="offline-card-label">
+              <AlertTriangle size={14} /> 离线设备
+            </span>
+            <strong className="offline-card-value">{data.offlineDeviceCount}</strong>
+          </div>
+        ) : (
+          <MetricCard label="离线设备" value={data.offlineDeviceCount} tone="neutral" />
+        )}
         <MetricCard label="待审批访客" value={data.stats.visitors_pending} tone="amber" />
         <MetricCard label="未处理告警" value={data.stats.open_alarms} tone="red" />
         <MetricCard label="今日成功开门" value={data.stats.today_success_logs} tone="teal" />

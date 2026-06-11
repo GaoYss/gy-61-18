@@ -114,7 +114,7 @@ select {
 
 .metrics-grid {
   display: grid;
-  grid-template-columns: repeat(5, minmax(150px, 1fr));
+  grid-template-columns: repeat(6, minmax(140px, 1fr));
   gap: 14px;
 }
 
@@ -150,6 +150,53 @@ select {
 .tone-amber { border-left-color: #d2902f; }
 .tone-red { border-left-color: #d74d4d; }
 .tone-teal { border-left-color: #218b8f; }
+.tone-neutral { border-left-color: #9aa8b7; }
+
+.offline-device-card {
+  background: #fff7f5;
+  animation: pulse-border 2s ease-in-out infinite;
+}
+
+.offline-device-card .offline-card-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: #8e2525;
+  font-weight: 600;
+}
+
+.offline-device-card .offline-card-label svg {
+  margin-right: 0;
+}
+
+.offline-device-card .offline-card-value {
+  color: #8e2525;
+}
+
+.icon-spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.dashboard-refresh {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.refresh-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.refresh-btn:disabled:hover {
+  background: #ffffff;
+  border-color: #ccd7e0;
+}
 
 .dashboard-grid {
   display: grid;
@@ -573,8 +620,18 @@ dd {
     padding: 18px;
   }
 
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
   .page-header h1 {
     font-size: 22px;
+  }
+
+  .dashboard-refresh {
+    width: 100%;
+    justify-content: space-between;
   }
 
   .metrics-grid,

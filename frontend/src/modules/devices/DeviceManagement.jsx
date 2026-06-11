@@ -1,4 +1,4 @@
-import { Activity, AlertTriangle, MapPin, RefreshCw } from "lucide-react";
+import { Activity, AlertTriangle, Loader2, MapPin, RefreshCw } from "lucide-react";
 
 import { EmptyState } from "../../components/EmptyState";
 import { StatusBadge } from "../../components/StatusBadge";
@@ -9,13 +9,16 @@ function getStatusPriority(status) {
 }
 
 export function DeviceManagement({ data }) {
-  const { devices, offlineDeviceCount, lastUpdated, refresh } = data;
+  const { devices, offlineDeviceCount, lastUpdated, refresh, refreshing, loading, error } = data;
 
   const sortedDevices = [...devices].sort((a, b) => {
     const priorityDiff = getStatusPriority(a.status) - getStatusPriority(b.status);
     if (priorityDiff !== 0) return priorityDiff;
     return a.device_code.localeCompare(b.device_code);
   });
+
+  if (loading) return <section className="panel">数据加载中...</section>;
+  if (error) return <section className="panel error-panel">{error}</section>;
 
   return (
     <section className="view-stack">
@@ -36,10 +39,21 @@ export function DeviceManagement({ data }) {
           </div>
         </div>
         <div className="refresh-info">
-          {lastUpdated && <span className="last-updated">最后更新：{formatDateTime(lastUpdated)}</span>}
-          <button className="refresh-btn" onClick={refresh} title="手动刷新">
-            <RefreshCw size={16} />
-            刷新
+          {lastUpdated && (
+            <span className="last-updated">
+              {refreshing && <Loader2 size={14} className="icon-spin" />}
+              {!refreshing && `最后更新：${formatDateTime(lastUpdated)}`}
+              {refreshing && " 正在刷新..."}
+            </span>
+          )}
+          <button
+            className="refresh-btn"
+            onClick={refresh}
+            disabled={refreshing || loading}
+            title="手动刷新"
+          >
+            <RefreshCw size={16} className={refreshing ? "icon-spin" : ""} />
+            {refreshing ? "刷新中..." : "刷新"}
           </button>
         </div>
       </div>
